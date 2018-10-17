@@ -21,8 +21,6 @@ import gnu.trove.list.TFloatList;
 import gnu.trove.list.TIntList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.logic.characters.CharacterMovementComponent;
-import org.terasology.logic.characters.MovementMode;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.events.PlaySoundEvent;
 import org.terasology.audio.events.PlaySoundForOwnerEvent;
@@ -34,11 +32,14 @@ import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
+import org.terasology.logic.characters.CharacterMovementComponent;
 import org.terasology.logic.characters.CharacterSoundComponent;
 import org.terasology.logic.characters.CharacterSoundSystem;
+import org.terasology.logic.characters.MovementMode;
 import org.terasology.logic.characters.events.AttackEvent;
 import org.terasology.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.logic.characters.events.VerticalCollisionEvent;
+import org.terasology.logic.debug.MovementDebugCommands;
 import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
@@ -97,7 +98,6 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
             checkHealed(entity, health, healAmount);
         }
     }
-
 
     /**
      * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing nothing.
@@ -172,6 +172,10 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         if (characterMovementComponent != null) {
             ghost = (characterMovementComponent.mode == MovementMode.GHOSTING);
         }
+        logger.info("test");
+        boolean test = Boolean.parseBoolean(System.getProperty(MovementDebugCommands.godmodeEnabled));
+        logger.info(String.valueOf(test));
+        logger.info(System.getProperty(MovementDebugCommands.godmodeEnabled));
         if ((health != null) && !ghost) {
             int damagedAmount = health.currentHealth - Math.max(health.currentHealth - damageAmount, 0);
             health.currentHealth -= damagedAmount;
@@ -190,13 +194,15 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     }
 
     private void checkDamage(EntityRef entity, int amount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
-        BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
-        if (!beforeDamage.isConsumed()) {
-            int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
-            if (damageAmount > 0) {
-                doDamage(entity, damageAmount, damageType, instigator, directCause);
-            } else {
-                doHeal(entity, -damageAmount, instigator);
+        if (!Boolean.parseBoolean(System.getProperty(MovementDebugCommands.godmodeEnabled))) {
+            BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
+            if (!beforeDamage.isConsumed()) {
+                int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
+                if (damageAmount > 0) {
+                    doDamage(entity, damageAmount, damageType, instigator, directCause);
+                } else {
+                    doHeal(entity, -damageAmount, instigator);
+                }
             }
         }
     }

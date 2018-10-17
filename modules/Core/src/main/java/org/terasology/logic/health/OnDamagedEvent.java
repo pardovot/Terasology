@@ -17,6 +17,7 @@ package org.terasology.logic.health;
 
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.prefab.Prefab;
+import org.terasology.logic.debug.MovementDebugCommands;
 
 /**
  * This event is sent after damage has been dealt to an entity.
@@ -28,12 +29,20 @@ public class OnDamagedEvent extends HealthChangedEvent {
 
     public OnDamagedEvent(int fullAmount, int change, Prefab damageType, EntityRef instigator) {
         super(instigator, change);
-        this.fullAmount = fullAmount;
+        if (System.getProperty(MovementDebugCommands.getGodmodeenabled()).equals("false")) {
+            this.fullAmount = fullAmount;
+        } else {
+            this.fullAmount = 0;
+        }
         this.damageType = damageType;
     }
 
     public int getDamageAmount() {
+        if (System.getProperty(MovementDebugCommands.getGodmodeenabled()).equals("false")) {
         return fullAmount;
+        } else {
+            return 0;
+        }
     }
 
     public Prefab getType() {
